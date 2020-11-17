@@ -173,7 +173,7 @@ int execute_line(char *line)
     //executa el mètode check_internal
     check_internal(args);
 }
-
+//metode main
 int main()
 {
     //declaracio variable char
