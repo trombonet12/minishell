@@ -53,21 +53,20 @@ int parse_args(char **args, char *line)
         {
             printf("Parse_args()-->token %d : %s \n", counter, token);
             printf("Parse_args()-->token %d : corregido (null) \n", counter);
-            
+
             token = strtok(NULL, s);
             //assignam a la posicio counter-èssima el valor de token
             args[counter] = token;
             break;
         }
-    
-            //imprimim per pantalla el valor de counter i de token
-            printf("Parse_args()-->token %d : %s \n", counter, token);
-            //incrementam countre amb una unitat
-            counter++;
-            token = strtok(NULL, s);
-            //assignam a la posicio counter-èssima el valor de token
-            args[counter] = token;
 
+        //imprimim per pantalla el valor de counter i de token
+        printf("Parse_args()-->token %d : %s \n", counter, token);
+        //incrementam countre amb una unitat
+        counter++;
+        token = strtok(NULL, s);
+        //assignam a la posicio counter-èssima el valor de token
+        args[counter] = token;
     }
     //imprimim per pantalla el valor de counter i de token
     printf("Parse_args()-->token %d : %s \n", counter, token);
@@ -77,23 +76,32 @@ int parse_args(char **args, char *line)
 
 int internal_cd(char **args)
 {
-   printf("Conitngut args1 : %s \n", args[1]);
-   char buffer[1024];
-   if(getcwd(buffer,sizeof(buffer))==NULL){
-        fprintf(stderr,"Error %d: %s \n",errno,strerror(errno));
-   }else{
-            printf("Directori Anterior %s \n", buffer);
-   }
-   if(chdir(args[1])==-1){
+    printf("Conitngut args1 : %s \n", args[1]);
+    char buffer[1024];
+    if (getcwd(buffer, sizeof(buffer)) == NULL)
+    {
+        fprintf(stderr, "Error %d: %s \n", errno, strerror(errno));
+    }
+    else
+    {
+        printf("Directori Anterior %s \n", buffer);
+    }
+    if (args[1] == NULL)
+    {
+        chdir("/home");
+        setenv("PWD", "/home", 1);
+    }
+    else if (chdir(args[1]) == -1)
+    {
         // fprintf(stderr,"Error %d: %s \n",errno,strerror(errno));
         printf("Chdir: No such file or directory \n");
-   }else{
-        getcwd(buffer,sizeof(buffer));
+    }
+    else
+    {
+        getcwd(buffer, sizeof(buffer));
+        setenv("PWD", buffer, 1);
         printf("Directori Actual %s \n", buffer);
-   }
-   
-   
-   
+    }
 }
 
 int internal_export(char **args)
