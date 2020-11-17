@@ -10,10 +10,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+
+//imprmir prompt per pantalla
 void imprimir_prompt()
 {
+    //obtenir valor de les variables desitjades
     char *PWD = getenv("PWD");
-    char *HOME = getenv("HOME");
     char *USER = getenv("USER");
 
     printf(VERMELL_T "%s" VERDE_T ":~" AMARILLO_T "%s-SOI" BLANCO_T "%c " RESET_COLOR, USER, PWD, PROMPT);
@@ -44,13 +46,18 @@ int parse_args(char **args, char *line)
 
     while (token != NULL)
     {
+        //comprovar si missatge introduït és un comentari
         if (token[0] == '#')
         {
-            printf("error");
+            printf("Parse_args()-->token %d : %s \n", counter, token);
+            printf("Parse_args()-->token %d : corregido (null) \n", counter);
+            
+            token = strtok(NULL, s);
+            //assignam a la posicio counter-èssima el valor de token
+            args[counter] = token;
             break;
         }
-        else
-        {
+    
             //imprimim per pantalla el valor de counter i de token
             printf("Parse_args()-->token %d : %s \n", counter, token);
             //incrementam countre amb una unitat
@@ -58,7 +65,7 @@ int parse_args(char **args, char *line)
             token = strtok(NULL, s);
             //assignam a la posicio counter-èssima el valor de token
             args[counter] = token;
-        }
+
     }
     //imprimim per pantalla el valor de counter i de token
     printf("Parse_args()-->token %d : %s \n", counter, token);
@@ -96,6 +103,7 @@ int internal_bg(char **args)
     printf("Reactiva un proceso detenido para que siga ejecutándose pero en segundo plano \n");
 }
 
+//comprovar si el comando passat per paràmetre és intern
 int check_internal(char **args)
 {
     char *strs[6];
@@ -108,36 +116,43 @@ int check_internal(char **args)
     strs[5] = "bg";
     strs[6] = "exit";
 
+    //comprovar si es el comando cd
     if (strcmp(strs[0], args[0]) == 0)
     {
         internal_cd(args);
         return 1;
     }
+    //comprovar si es el comando export
     else if (strcmp(strs[1], args[0]) == 0)
     {
         internal_export(args);
         return 1;
     }
+    //comprovar si es el comando source
     else if (strcmp(strs[2], args[0]) == 0)
     {
         internal_source(args);
         return 1;
     }
+    //comprovar si es el comando jobs
     else if (strcmp(strs[3], args[0]) == 0)
     {
         internal_jobs(args);
         return 1;
     }
+    //comprovar si es el comando fg
     else if (strcmp(strs[4], args[0]) == 0)
     {
         internal_fg(args);
         return 1;
     }
+    //comprovar si es el comando bg
     else if (strcmp(strs[5], args[0]) == 0)
     {
         internal_bg(args);
         return 1;
     }
+    //comprovar si es el comando exit
     else if (strcmp(strs[6], args[0]) == 0)
     {
         exit(0);
@@ -154,7 +169,7 @@ int execute_line(char *line)
     //declaració varibale punter char
     char *args[ARGS_SIZE];
 
-    printf("Contador: %d \n", parse_args(args, line));
+    printf("El nombre de tokens és: %d \n", parse_args(args, line));
     //executa el mètode check_internal
     check_internal(args);
 }
