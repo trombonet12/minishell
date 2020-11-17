@@ -73,33 +73,45 @@ int parse_args(char **args, char *line)
 
     return counter;
 }
-
+//canviar el directori
 int internal_cd(char **args)
 {
-    printf("Conitngut args1 : %s \n", args[1]);
+
     char buffer[1024];
+    //obtenir el directori anterior al desitjat
     if (getcwd(buffer, sizeof(buffer)) == NULL)
     {
+        //control d'error al fer una cridada al sistema
         fprintf(stderr, "Error %d: %s \n", errno, strerror(errno));
     }
     else
-    {
+    {   //imprimir per pantalla el directori anterior al desitjat
         printf("Directori Anterior %s \n", buffer);
     }
+    //comprovar si el comando cd no te cap agrument
     if (args[1] == NULL)
     {
+        //canviar direcori a /home
         chdir("/home");
+        //assignar a la variable d'entron PWD el directori /home
         setenv("PWD", "/home", 1);
     }
+    //assignar nou directori introduït per pantalla
     else if (chdir(args[1]) == -1)
     {
-        // fprintf(stderr,"Error %d: %s \n",errno,strerror(errno));
+        //control d'errors de la cridada al sistema
         printf("Chdir: No such file or directory \n");
     }
-    else
+    //obtenir el directori actual
+    else if(getcwd(buffer, sizeof(buffer))==NULL)
     {
-        getcwd(buffer, sizeof(buffer));
+        //control d'errors de la cridada al sistema
+        fprintf(stderr, "Error %d: %s \n", errno, strerror(errno));
+        
+    }else{
+        //assignar el nou directori a la variable d'entorn PWD
         setenv("PWD", buffer, 1);
+        //imprimir per pantalla el directori actualitzat
         printf("Directori Actual %s \n", buffer);
     }
 }
