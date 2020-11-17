@@ -142,8 +142,12 @@ int check_internal(char **args)
     strs[5] = "bg";
     strs[6] = "exit";
 
+    if (args[0] == NULL)
+    {
+        //Evitam una violacio de segment
+    }
     //comprovar si es el comando cd
-    if (strcmp(strs[0], args[0]) == 0)
+    else if (strcmp(strs[0], args[0]) == 0)
     {
         internal_cd(args);
         return 1;
