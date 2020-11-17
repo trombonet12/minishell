@@ -10,6 +10,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <errno.h>
 
 //imprmir prompt per pantalla
 void imprimir_prompt()
@@ -75,7 +77,23 @@ int parse_args(char **args, char *line)
 
 int internal_cd(char **args)
 {
-    printf("Para cambiar de directorio actual de trabajo \n");
+   printf("Conitngut args1 : %s \n", args[1]);
+   char buffer[1024];
+   if(getcwd(buffer,sizeof(buffer))==NULL){
+        fprintf(stderr,"Error %d: %s \n",errno,strerror(errno));
+   }else{
+            printf("Directori Anterior %s \n", buffer);
+   }
+   if(chdir(args[1])==-1){
+        // fprintf(stderr,"Error %d: %s \n",errno,strerror(errno));
+        printf("Chdir: No such file or directory \n");
+   }else{
+        getcwd(buffer,sizeof(buffer));
+        printf("Directori Actual %s \n", buffer);
+   }
+   
+   
+   
 }
 
 int internal_export(char **args)
