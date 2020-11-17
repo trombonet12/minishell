@@ -106,7 +106,23 @@ int internal_cd(char **args)
 
 int internal_export(char **args)
 {
-    printf("Para asignar variables de entorno \n");
+    const char s[2] = "=\n";
+    char *token;
+    char ent[2];
+    token = strtok(args[1], s);
+    ent[0] = token;
+    printf("Parse_args()-->token: %s \n", token);
+    token = strtok(args[1], s);
+    ent[1] = token;
+    printf("Parse_args()-->token: %s \n", token);
+
+    printf("Valor Inicial %s \n", getenv(ent[0]));
+
+    if ((ent[0] != NULL) && (ent[1] != NULL)){
+        setenv(ent[0],ent[1],1);
+        printf("Valor Final %s \n", getenv(ent[0]));
+    }
+    
 }
 
 int internal_source(char **args)
