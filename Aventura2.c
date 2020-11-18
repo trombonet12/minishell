@@ -85,7 +85,7 @@ int internal_cd(char **args)
         fprintf(stderr, "Error %d: %s \n", errno, strerror(errno));
     }
     else
-    {   //imprimir per pantalla el directori anterior al desitjat
+    { //imprimir per pantalla el directori anterior al desitjat
         printf("Directori Anterior %s \n", buffer);
     }
     //comprovar si el comando cd no te cap agrument
@@ -103,12 +103,13 @@ int internal_cd(char **args)
         printf("Chdir: No such file or directory \n");
     }
     //obtenir el directori actual
-    else if(getcwd(buffer, sizeof(buffer))==NULL)
+    else if (getcwd(buffer, sizeof(buffer)) == NULL)
     {
         //control d'errors de la cridada al sistema
         fprintf(stderr, "Error %d: %s \n", errno, strerror(errno));
-        
-    }else{
+    }
+    else
+    {
         //assignar el nou directori a la variable d'entorn PWD
         setenv("PWD", buffer, 1);
         //imprimir per pantalla el directori actualitzat
@@ -119,22 +120,31 @@ int internal_cd(char **args)
 int internal_export(char **args)
 {
     const char s[2] = "=\n";
-    char *token;
-    char ent[2];
-    token = strtok(args[1], s);
-    ent[0] = token;
-    printf("Parse_args()-->token: %s \n", token);
-    token = strtok(args[1], s);
-    ent[1] = token;
-    printf("Parse_args()-->token: %s \n", token);
+    char *nom;
+    char *valor;
+    if (args[1] != NULL)
+    {
+        nom = strtok(args[1], s);
+        printf("Parse_args()-->token: %s \n", nom);
+        valor = strtok(NULL, s);
+        printf("Parse_args()-->token: %s \n", valor);
 
-    printf("Valor Inicial %s \n", getenv(ent[0]));
+        printf("Valor Inicial %s \n", getenv(nom));
 
-    if ((ent[0] != NULL) && (ent[1] != NULL)){
-        setenv(ent[0],ent[1],1);
-        printf("Valor Final %s \n", getenv(ent[0]));
+        if ((nom != NULL) && (valor != NULL))
+        {
+            setenv(nom, valor, 1);
+            printf("Valor Final %s \n", getenv(nom));
+        }
+        else
+        {
+            printf("Sintaxis Incorrecta. Us correcte: export NOM=VALOR \n");
+        }
     }
-    
+    else
+    {
+        printf("Sintaxis Incorrecta. Us correcte: export NOM=VALOR \n");
+    }
 }
 
 int internal_source(char **args)
