@@ -129,16 +129,23 @@ int internal_export(char **args)
         valor = strtok(NULL, s);
         printf("Parse_args()-->token: %s \n", valor);
 
-        printf("Valor Inicial %s \n", getenv(nom));
-
-        if ((nom != NULL) && (valor != NULL))
+        if (getenv(nom) == NULL && valor != NULL)
         {
-            setenv(nom, valor, 1);
-            printf("Valor Final %s \n", getenv(nom));
+            printf("No existeix aquesta variable d'entorn: %s \n", nom);
         }
         else
         {
-            printf("Sintaxis Incorrecta. Us correcte: export NOM=VALOR \n");
+            printf("Valor Inicial %s \n", getenv(nom));
+
+            if ((nom != NULL) && (valor != NULL))
+            {
+                setenv(nom, valor, 1);
+                printf("Valor Final %s \n", getenv(nom));
+            }
+            else
+            {
+                printf("Sintaxis Incorrecta. Us correcte: export NOM=VALOR \n");
+            }
         }
     }
     else
