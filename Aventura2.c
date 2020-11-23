@@ -116,47 +116,55 @@ int internal_cd(char **args)
         printf("Directori Actual %s \n", buffer);
     }
 }
-
+//canviar una variable d'entorn
 int internal_export(char **args)
 {
     const char s[2] = "=\n";
     char *nom;
     char *valor;
     if (args[1] != NULL)
-    {
+    {   
+        //dividim el segon token en variable i valor introduit
         nom = strtok(args[1], s);
         printf("Parse_args()-->token: %s \n", nom);
         valor = strtok(NULL, s);
         printf("Parse_args()-->token: %s \n", valor);
 
+        //comprovam que hi hagi arguments necessaris per realitzar l'operació
         if ((nom == NULL) && (valor == NULL))
-        {
+        {   
+            //avisam a l'usuari de l'error de sintaxis
             printf("Sintaxis Incorrecta. Us correcte: export NOM=VALOR \n");
         }
         else
-        {
+        {   
+            //comprovam que la variable d'entorn introduida existeix
             if (getenv(nom) == NULL && valor != NULL)
-            {
+            {   
+                //informam al usuari que la variable que ha introduit no existeix
                 printf("No existeix aquesta variable d'entorn: %s \n", nom);
             }
             else
-            {
+            {   
                 printf("Valor Inicial %s \n", getenv(nom));
-
+                //comprovam que hi hagi un valor a introduir a la variable d'entorn
                 if (valor != NULL)
-                {
+                {   
+                    //assignam el nou valor a la variable introduida
                     setenv(nom, valor, 1);
                     printf("Valor Final %s \n", getenv(nom));
                 }
                 else
-                {
+                {   
+                    //avisam a l'usuari de l'error de sintaxis
                     printf("Sintaxis Incorrecta. Us correcte: export NOM=VALOR \n");
                 }
             }
         }
     }
     else
-    {
+    {   
+        //avisam a l'usuari de l'error de sintaxis
         printf("Sintaxis Incorrecta. Us correcte: export NOM=VALOR \n");
     }
 }
@@ -266,7 +274,7 @@ int main()
     {
 
         //comprov que la longuitud de la linia de comandos es major que 0, i executa el mètode read_line
-        if (read_line(line) && strlen(line) > 0)
+        if (read_line(line))
         {
             //executa el mètode execute_line
             execute_line(line);
