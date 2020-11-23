@@ -38,6 +38,7 @@ char *read_line(char *line)
 //divideix la linia passada per paràmetre en fragments
 int parse_args(char **args, char *line)
 {
+
     //declaracions
     int counter = 0;
     const char s[2] = " \n";
@@ -45,7 +46,7 @@ int parse_args(char **args, char *line)
     token = strtok(line, s);
     //assignam a la posicio counter-èssima el valor de token
     args[counter] = token;
-
+    printf("DINS LA FUNCIO PARSE_ARGS \n");
     while (token != NULL)
     {
         //comprovar si missatge introduït és un comentari
@@ -78,6 +79,8 @@ int internal_cd(char **args)
 {
 
     char buffer[1024];
+
+    printf("DINS LA FUNCIO INTERNAL_CD \n");
     //obtenir el directori anterior al desitjat
     if (getcwd(buffer, sizeof(buffer)) == NULL)
     {
@@ -86,7 +89,7 @@ int internal_cd(char **args)
     }
     else
     { //imprimir per pantalla el directori anterior al desitjat
-        printf("Directori Anterior %s \n", buffer);
+        printf("Directori Anterior --> %s \n", buffer);
     }
     //comprovar si el comando cd no te cap agrument
     if (args[1] == NULL)
@@ -113,15 +116,18 @@ int internal_cd(char **args)
         //assignar el nou directori a la variable d'entorn PWD
         setenv("PWD", buffer, 1);
         //imprimir per pantalla el directori actualitzat
-        printf("Directori Actual %s \n", buffer);
+        printf("Directori Actual --> %s \n", buffer);
     }
 }
 //canviar una variable d'entorn
 int internal_export(char **args)
 {
+    
     const char s[2] = "=\n";
     char *nom;
     char *valor;
+    printf("DINS LA FUNICO INTERNAL_EXPORT \n");
+    printf("Contingut de args[1] --> %s \n", args[1]);
     if (args[1] != NULL)
     {   
         //dividim el segon token en variable i valor introduit
@@ -152,7 +158,7 @@ int internal_export(char **args)
                 {   
                     //assignam el nou valor a la variable introduida
                     setenv(nom, valor, 1);
-                    printf("Valor Final %s \n", getenv(nom));
+                    printf("Valor Final --> %s \n", getenv(nom));
                 }
                 else
                 {   
