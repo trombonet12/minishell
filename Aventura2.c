@@ -25,7 +25,11 @@ void imprimir_prompt()
 
 //imprimir el prompt i llegir una linia de codi amb char *fgets(char *str, int n, sream FILE*)
 char *read_line(char *line)
-{
+{   
+    if (feof(stdin))
+    {
+        exit(0);
+    }
     //imprimir pront
     imprimir_prompt();
     //emmagatzamar el comando introduit per teclat dins line
@@ -35,6 +39,7 @@ char *read_line(char *line)
 
     return line;
 }
+
 //divideix la linia passada per paràmetre en fragments
 int parse_args(char **args, char *line)
 {
