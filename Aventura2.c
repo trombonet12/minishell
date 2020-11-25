@@ -12,6 +12,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 //imprmir prompt per pantalla
 void imprimir_prompt()
@@ -26,14 +28,14 @@ void imprimir_prompt()
 //imprimir el prompt i llegir una linia de codi amb char *fgets(char *str, int n, sream FILE*)
 char *read_line(char *line)
 {
-    
+
     //imprimir pront
     imprimir_prompt();
     //emmagatzamar el comando introduit per teclat dins line
     fgets(line, COMMAND_LINE_SIZE, stdin);
     //detectam si hi ha hagut un EOF
     if (feof(stdin))
-    {   
+    {
         //inserim un salt de linia per la claretat del shell
         printf("\n");
         exit(0);
@@ -107,6 +109,7 @@ int internal_cd(char **args)
         chdir("/home");
         //assignar a la variable d'entron PWD el directori /home
         setenv("PWD", "/home", 1);
+        printf("Directori Actual --> /home \n");
     }
     //assignar nou directori introduït per pantalla
     else if (chdir(args[1]) == -1)
@@ -278,7 +281,23 @@ int execute_line(char *line)
     //executa el mètode check_internal
     if (!check_internal(args))
     {
-        
+        pid_t pid;
+        pid = fork();
+        if (pid == 0)
+        { // fill
+            printf("HIJO: getpid(), o sea PID del proceso hijo: %d\n", getpid());
+            printf("HIJO: getppid(), o sea PID del proceso padre: %d\n", getppid());
+            execvp(args[0], args);
+            printf("HIJO: Si ve este mensaje, el execvp no funcionó...\n");
+            exit(-1);
+        }
+        else if (pid > 0)
+        { // pare
+            printf("PADRE: pid recibido de fork(), o sea PID del proceso hijo: %d\n", pid);
+            printf("PADRE: getpid() o sea PID del proceso padre: %d\n", getpid());
+            printf("PADRE: getppid() o sea PID del proceso padre del padre: %d\n", getppid());
+            printf("PADRE: Ha terminado mi hijo %d\n", wait(NULL));
+        }
     }
 }
 //metode main
