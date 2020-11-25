@@ -281,6 +281,7 @@ int execute_line(char *line)
     //executa el mètode check_internal
     if (!check_internal(args))
     {
+        printf("ES UN COMANDO EXTERN \n");
         pid_t pid;
         pid = fork();
         if (pid == 0)
@@ -297,6 +298,10 @@ int execute_line(char *line)
             printf("PADRE: getpid() o sea PID del proceso padre: %d\n", getpid());
             printf("PADRE: getppid() o sea PID del proceso padre del padre: %d\n", getppid());
             printf("PADRE: Ha terminado mi hijo %d\n", wait(NULL));
+
+        }else{
+        //control d'errors de la cridada al sistema
+        fprintf(stderr, "Error %d: %s \n", errno, strerror(errno));
         }
     }
 }
