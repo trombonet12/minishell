@@ -25,16 +25,19 @@ void imprimir_prompt()
 
 //imprimir el prompt i llegir una linia de codi amb char *fgets(char *str, int n, sream FILE*)
 char *read_line(char *line)
-{   
-    //detectam si hi ha hagut un EOF
-    if (feof(stdin))
-    {
-        exit(0);
-    }
+{
+    
     //imprimir pront
     imprimir_prompt();
     //emmagatzamar el comando introduit per teclat dins line
     fgets(line, COMMAND_LINE_SIZE, stdin);
+    //detectam si hi ha hagut un EOF
+    if (feof(stdin))
+    {   
+        //inserim un salt de linia per la claretat del shell
+        printf("\n");
+        exit(0);
+    }
     //buidam el buffer
     fflush(stdin);
 
@@ -273,7 +276,10 @@ int execute_line(char *line)
 
     printf("El nombre de tokens és: %d \n", parse_args(args, line));
     //executa el mètode check_internal
-    check_internal(args);
+    if (!check_internal(args))
+    {
+        
+    }
 }
 //metode main
 int main()
