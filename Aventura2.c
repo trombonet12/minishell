@@ -15,6 +15,8 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+int execute_line(char *line);
+
 //imprmir prompt per pantalla
 void imprimir_prompt()
 {
@@ -190,6 +192,31 @@ int internal_export(char **args)
 int internal_source(char **args)
 {
     printf("Ejecuta las líneas de comandos del fichero nombre \n");
+
+    if (args[1] != NULL)
+    {
+        FILE *arxiu;
+        char str[COMMAND_LINE_SIZE];
+        arxiu = fopen(args[1], "r");
+        if (arxiu != NULL)
+        {   
+            char str[COMMAND_LINE_SIZE];
+            while (fgets(str, COMMAND_LINE_SIZE, arxiu) != NULL)
+            {
+                execute_line(str);
+                fflush(arxiu);
+            }
+            fclose(arxiu);
+        }
+        else
+        {
+            printf("ERROR: No s'ha pogut obrir l'arxiu\n");
+        }
+    }
+    else
+    {
+        printf("Sintaxis Incorrecta. Us correcte: source <nom del fitxer>\n");
+    }
 }
 
 int internal_jobs(char **args)
@@ -298,10 +325,11 @@ int execute_line(char *line)
             printf("PADRE: getpid() o sea PID del proceso padre: %d\n", getpid());
             printf("PADRE: getppid() o sea PID del proceso padre del padre: %d\n", getppid());
             printf("PADRE: Ha terminado mi hijo %d\n", wait(NULL));
-
-        }else{
-        //control d'errors de la cridada al sistema
-        fprintf(stderr, "Error %d: %s \n", errno, strerror(errno));
+        }
+        else
+        {
+            //control d'errors de la cridada al sistema
+            fprintf(stderr, "Error %d: %s \n", errno, strerror(errno));
         }
     }
 }
