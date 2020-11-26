@@ -200,8 +200,7 @@ int internal_source(char **args)
         arxiu = fopen(args[1], "r");
         if (arxiu != NULL)
         {   
-            char str[COMMAND_LINE_SIZE];
-            while (fgets(str, COMMAND_LINE_SIZE, arxiu) != NULL)
+            if (fgets(str, COMMAND_LINE_SIZE, arxiu) != NULL)
             {
                 execute_line(str);
                 fflush(arxiu);
