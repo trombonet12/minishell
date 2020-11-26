@@ -191,25 +191,31 @@ int internal_export(char **args)
 
 int internal_source(char **args)
 {
-    printf("Ejecuta las líneas de comandos del fichero nombre \n");
-
+    printf("DINS LA FUNCIO INTERNAL_SOURCE\n");
+    //comprovam que la sintaxis de l'ordre sigui correcte
     if (args[1] != NULL)
     {
+        //Declaracio i inicialització de la variable FILE
         FILE *arxiu;
-        char str[COMMAND_LINE_SIZE];
         arxiu = fopen(args[1], "r");
+        //Declaracio d'un string per contenir una linia del arxiu
+        char str[COMMAND_LINE_SIZE];
+        //comprovam l'existencia del arxiu
         if (arxiu != NULL)
-        {   
-            if (fgets(str, COMMAND_LINE_SIZE, arxiu) != NULL)
+        {
+            //bucle per llegir el contingut del arxiu, linia a linia
+            while (fgets(str, COMMAND_LINE_SIZE, arxiu) != NULL)
             {
-                execute_line(str);
                 fflush(arxiu);
+                //pasam la linia llegida a execute_line
+                execute_line(str);
             }
+            //tancam l'arxiu
             fclose(arxiu);
         }
         else
         {
-            printf("ERROR: No s'ha pogut obrir l'arxiu\n");
+            printf("ERROR: L'arxiu introduit no existeix\n");
         }
     }
     else
