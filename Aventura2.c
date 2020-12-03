@@ -30,7 +30,6 @@ void imprimir_prompt()
 //imprimir el prompt i llegir una linia de codi amb char *fgets(char *str, int n, sream FILE*)
 char *read_line(char *line)
 {
-
     //imprimir pront
     imprimir_prompt();
     //emmagatzamar el comando introduit per teclat dins line
