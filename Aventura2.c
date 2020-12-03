@@ -1,5 +1,5 @@
 #define _POSIX_C_SOURCE 200112L
-#define COMMAND_LINE_SIZE 1024
+dfasfdsafdadefine COMMAND_LINE_SIZE 1024
 #define ARGS_SIZE 64
 #define PROMPT '$'
 #define AMARILLO_T "\x1b[33m"
