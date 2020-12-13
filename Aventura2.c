@@ -1,6 +1,7 @@
 #define _POSIX_C_SOURCE 200112L
 #define COMMAND_LINE_SIZE 1024
 #define ARGS_SIZE 64
+#define N_JOBS 64
 #define PROMPT '$'
 #define AMARILLO_T "\x1b[33m"
 #define VERDE_T "\x1b[32m"
@@ -16,6 +17,15 @@
 #include <sys/wait.h>
 
 int execute_line(char *line);
+
+struct info_process
+{
+    pid_t pid;
+    char status;                 // ‘N’, ’E’, ‘D’, ‘F’
+    char cmd[COMMAND_LINE_SIZE]; // línea de comando
+};
+
+static struct info_process jobs_list[N_JOBS];
 
 //imprmir prompt per pantalla
 void imprimir_prompt()
@@ -301,6 +311,36 @@ int check_internal(char **args)
         return 0;
     }
 }
+void reaper(int signum)
+{   
+    pid_t ended;
+    //signal(17, reaper); //sigchld
+    if (ended=(waitpid(-1, NULL, WNOHANG)) > 0) {
+        jobs_list[0].pid = 0;
+        printf("El fill que ha finalitzat es: %d\n", ended);
+    }
+
+}
+void ctrlc(int signum)
+{
+    //signal(2, ctrlc); //siginit
+    if (jobs_list[0].pid > 0)
+    {
+        if (getppid() != getpid())
+        {
+            kill(jobs_list[0].pid);
+            printf("CTRL C executat amb exit\n");
+        }
+        else
+        {
+            printf("Señal SIGTERM no enviada debido a que el proceso en foreground es el shell\n");
+        }
+    }
+    else
+    {
+        printf("Señal SIGTERM no enviada debido a que no hay proceso en foreground\n");
+    }
+}
 
 //crida a la funcio parse_args() i passa a la funcio check_internal() el retorn de parse_args
 int execute_line(char *line)
@@ -318,6 +358,7 @@ int execute_line(char *line)
         if (pid == 0)
         { // fill
             printf("HIJO: getpid(), o sea PID del proceso hijo: %d\n", getpid());
+            sleep(10);
             printf("HIJO: getppid(), o sea PID del proceso padre: %d\n", getppid());
             execvp(args[0], args);
             printf("HIJO: Si ve este mensaje, el execvp no funcionó...\n");
@@ -325,10 +366,15 @@ int execute_line(char *line)
         }
         else if (pid > 0)
         { // pare
+            jobs_list[0].pid = pid;
             printf("PADRE: pid recibido de fork(), o sea PID del proceso hijo: %d\n", pid);
             printf("PADRE: getpid() o sea PID del proceso padre: %d\n", getpid());
             printf("PADRE: getppid() o sea PID del proceso padre del padre: %d\n", getppid());
-            printf("PADRE: Ha terminado mi hijo %d\n", wait(NULL));
+            //printf("PADRE: Ha terminado mi hijo %d\n", wait(NULL));
+            while (jobs_list[0].pid > 0)
+            {
+                pause();
+            }
         }
         else
         {
@@ -346,7 +392,8 @@ int main()
     //bucle infinit perquè la consola estigu constantment esperant un fluxe d'entrada de dades
     while (1)
     {
-
+        signal(17, reaper); //sigchld
+        signal(2, ctrlc);   //siginit
         //comprov que la longuitud de la linia de comandos es major que 0, i executa el mètode read_line
         if (read_line(line))
         {
