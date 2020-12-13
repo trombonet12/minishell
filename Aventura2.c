@@ -311,19 +311,21 @@ int check_internal(char **args)
         return 0;
     }
 }
+//Metode enterrador
 void reaper(int signum)
 {   
     pid_t ended;
-    //signal(17, reaper); //sigchld
+    //signal(17, reaper); //sigchld Aixo es provisional perque me dona warning i no se si es necesari
     if (ended=(waitpid(-1, NULL, WNOHANG)) > 0) {
         jobs_list[0].pid = 0;
         printf("El fill que ha finalitzat es: %d\n", ended);
     }
 
 }
+//Metode que atura el proces en primer pla
 void ctrlc(int signum)
 {
-    //signal(2, ctrlc); //siginit
+    //signal(2, ctrlc); //siginit Aixo es provisional perque me dona warning i no se si es necesari
     if (jobs_list[0].pid > 0)
     {
         if (getppid() != getpid())
@@ -371,6 +373,7 @@ int execute_line(char *line)
             printf("PADRE: getpid() o sea PID del proceso padre: %d\n", getpid());
             printf("PADRE: getppid() o sea PID del proceso padre del padre: %d\n", getppid());
             //printf("PADRE: Ha terminado mi hijo %d\n", wait(NULL));
+            //Feim que el pare esperia al proces en primer pla
             while (jobs_list[0].pid > 0)
             {
                 pause();
