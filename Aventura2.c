@@ -15,6 +15,8 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <signal.h>
+
 
 int execute_line(char *line);
 
@@ -315,7 +317,7 @@ int check_internal(char **args)
 void reaper(int signum)
 {   
     pid_t ended;
-    //signal(17, reaper); //sigchld Aixo es provisional perque me dona warning i no se si es necesari
+    signal(SIGCHLD, reaper); //sigchld Aixo es provisional perque me dona warning i no se si es necesari
     if (ended=(waitpid(-1, NULL, WNOHANG)) > 0) {
         jobs_list[0].pid = 0;
         printf("El fill que ha finalitzat es: %d\n", ended);
@@ -325,12 +327,12 @@ void reaper(int signum)
 //Metode que atura el proces en primer pla
 void ctrlc(int signum)
 {
-    //signal(2, ctrlc); //siginit Aixo es provisional perque me dona warning i no se si es necesari
+    signal(SIGINT, ctrlc); //siginit Aixo es provisional perque me dona warning i no se si es necesari
     if (jobs_list[0].pid > 0)
     {
         if (getppid() != getpid())
         {
-            kill(jobs_list[0].pid);
+            kill(jobs_list[0].pid,SIGKILL);
             printf("CTRL C executat amb exit\n");
         }
         else
@@ -395,8 +397,8 @@ int main()
     //bucle infinit perquè la consola estigu constantment esperant un fluxe d'entrada de dades
     while (1)
     {
-        signal(17, reaper); //sigchld
-        signal(2, ctrlc);   //siginit
+        signal(SIGCHLD, reaper); //sigchld
+        signal(SIGINT, ctrlc);   //siginit
         //comprov que la longuitud de la linia de comandos es major que 0, i executa el mètode read_line
         if (read_line(line))
         {
