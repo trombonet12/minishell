@@ -17,7 +17,7 @@
 #include <sys/wait.h>
 #include <signal.h>
 
-
+int n_pids = 0; //variable global per controlar el nombre de treballs actius
 int execute_line(char *line);
 
 struct info_process
@@ -315,24 +315,24 @@ int check_internal(char **args)
 }
 //Metode enterrador
 void reaper(int signum)
-{   
+{
     pid_t ended;
-    signal(SIGCHLD, reaper); //sigchld Aixo es provisional perque me dona warning i no se si es necesari
-    if (ended=(waitpid(-1, NULL, WNOHANG)) > 0) {
+    signal(SIGCHLD, reaper); 
+    if (ended = (waitpid(-1, NULL, WNOHANG)) > 0)
+    {
         jobs_list[0].pid = 0;
         printf("El fill que ha finalitzat es: %d\n", ended);
     }
-
 }
 //Metode que atura el proces en primer pla
 void ctrlc(int signum)
 {
-    signal(SIGINT, ctrlc); //siginit Aixo es provisional perque me dona warning i no se si es necesari
+    signal(SIGINT, ctrlc); 
     if (jobs_list[0].pid > 0)
     {
         if (getppid() != getpid())
         {
-            kill(jobs_list[0].pid,SIGKILL);
+            kill(jobs_list[0].pid, SIGKILL);
             printf("CTRL C executat amb exit\n");
         }
         else
@@ -345,11 +345,63 @@ void ctrlc(int signum)
         printf("Señal SIGTERM no enviada debido a que no hay proceso en foreground\n");
     }
 }
+void ctrlz(int signum)
+{
+    signal(SIGTSTP, ctrlz);
+    if (jobs_list[0].pid > 0)
+    {
+        //en proceso
+    }
+    else
+    {
+        printf("Señal SIGTSTP no enviada debido a que no hay proceso en foreground\n");
+    }
+
+}
+int jobs_list_add(pid_t pid, char status, char *cmd)
+{
+    if (n_pids < N_JOBS)
+    {
+        n_pids++;
+        jobs_list[n_pids].pid = pid;
+        jobs_list[n_pids].status = status;
+        for (int i = 0; i < COMMAND_LINE_SIZE; i++)
+        {
+            jobs_list[n_pids].cmd[i] = cmd[i];
+        }
+    }
+}
+int jobs_list_find(pid_t pid)
+{
+    for (int i = 0; i < n_pids; i++)
+    {
+        if (jobs_list[i].pid == pid)
+        {
+            return i;
+        }
+    }
+    printf("job list find-> no trobat");
+
+    return -1;
+}
+
+int jobs_list_remove(int pos)
+{
+    jobs_list[pos] = jobs_list[n_pids];
+    n_pids--;
+}
+int internal_jobs()
+{
+    for (int i = 1; i < n_pids; i++)
+    {
+        printf("[%d]: PID: %d. COMMAND LINE: %d. STATUS: %d", i, jobs_list[i].pid, jobs_list[i].cmd, jobs_list[i].status);
+    }
+}
 
 //crida a la funcio parse_args() i passa a la funcio check_internal() el retorn de parse_args
 int execute_line(char *line)
 {
-    //declaració varibale punter char
+    //declaració varibale punter chars
     char *args[ARGS_SIZE];
 
     printf("El nombre de tokens és: %d \n", parse_args(args, line));
@@ -397,8 +449,9 @@ int main()
     //bucle infinit perquè la consola estigu constantment esperant un fluxe d'entrada de dades
     while (1)
     {
-        signal(SIGCHLD, reaper); //sigchld
-        signal(SIGINT, ctrlc);   //siginit
+        signal(SIGCHLD, reaper);
+        signal(SIGINT, ctrlc);
+        signal(SIGTSTP, ctrlz);
         //comprov que la longuitud de la linia de comandos es major que 0, i executa el mètode read_line
         if (read_line(line))
         {
