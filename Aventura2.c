@@ -317,7 +317,7 @@ int check_internal(char **args)
 void reaper(int signum)
 {
     pid_t ended;
-    signal(SIGCHLD, reaper); 
+    signal(SIGCHLD, reaper);
     if (ended = (waitpid(-1, NULL, WNOHANG)) > 0)
     {
         jobs_list[0].pid = 0;
@@ -327,7 +327,7 @@ void reaper(int signum)
 //Metode que atura el proces en primer pla
 void ctrlc(int signum)
 {
-    signal(SIGINT, ctrlc); 
+    signal(SIGINT, ctrlc);
     if (jobs_list[0].pid > 0)
     {
         if (getppid() != getpid())
@@ -356,7 +356,6 @@ void ctrlz(int signum)
     {
         printf("Señal SIGTSTP no enviada debido a que no hay proceso en foreground\n");
     }
-
 }
 int jobs_list_add(pid_t pid, char status, char *cmd)
 {
@@ -397,14 +396,29 @@ int internal_jobs()
         printf("[%d]: PID: %d. COMMAND LINE: %d. STATUS: %d", i, jobs_list[i].pid, jobs_list[i].cmd, jobs_list[i].status);
     }
 }
+int is_background(char **args, int numArgs)
+{
+    if (args[numArgs] == '&')
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
 
 //crida a la funcio parse_args() i passa a la funcio check_internal() el retorn de parse_args
 int execute_line(char *line)
 {
     //declaració varibale punter chars
     char *args[ARGS_SIZE];
+    int background = 0; //variable de per sebre si s'ha d'executar en segon pla, 0 false, 1 true
+    int numArgs = parse_args(args, line);
 
-    printf("El nombre de tokens és: %d \n", parse_args(args, line));
+    printf("El nombre de tokens és: %d \n", numArgs);
+
+    background = is_background(args, numArgs);
     //executa el mètode check_internal
     if (!check_internal(args))
     {
