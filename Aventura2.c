@@ -237,7 +237,10 @@ int internal_source(char **args)
 
 int internal_jobs(char **args)
 {
-    printf("Muestra el PID de los procesos que se están ejecutando en background \n");
+    for (int i = 1; i < n_pids; i++)
+    {
+        printf("[%d]: PID: %d. COMMAND LINE: %d. STATUS: %d", i, jobs_list[i].pid, jobs_list[i].cmd, jobs_list[i].status);
+    }
 }
 
 int internal_fg(char **args)
@@ -393,13 +396,6 @@ int jobs_list_remove(int pos)
     jobs_list[pos] = jobs_list[n_pids];
     n_pids--;
 }
-int internal_jobs()
-{
-    for (int i = 1; i < n_pids; i++)
-    {
-        printf("[%d]: PID: %d. COMMAND LINE: %d. STATUS: %d", i, jobs_list[i].pid, jobs_list[i].cmd, jobs_list[i].status);
-    }
-}
 int is_background(char **args, int numArgs)
 {
     if (args[numArgs] == '&')
@@ -432,7 +428,6 @@ int execute_line(char *line)
         if (pid == 0)
         { // fill
             printf("HIJO: getpid(), o sea PID del proceso hijo: %d\n", getpid());
-            sleep(10);
             printf("HIJO: getppid(), o sea PID del proceso padre: %d\n", getppid());
             signal(SIGINT, SIG_IGN);
             signal(SIGTSTP, SIG_IGN);
@@ -443,17 +438,29 @@ int execute_line(char *line)
         }
         else if (pid > 0)
         { // pare
-            jobs_list[0].pid = pid;
             printf("PADRE: pid recibido de fork(), o sea PID del proceso hijo: %d\n", pid);
             printf("PADRE: getpid() o sea PID del proceso padre: %d\n", getpid());
             printf("PADRE: getppid() o sea PID del proceso padre del padre: %d\n", getppid());
-            jobs_list_add(pid, 'E', args);
+            if (background == 1)
+            {
+                jobs_list_add(pid, 'E', args);
+            }
+            else
+            {
+                jobs_list[0].pid = pid;
+                jobs_list[0].status = 'E';
+                for (int i = 0; i < COMMAND_LINE_SIZE; i++)
+                {
+                    jobs_list[0].cmd[i] = args[i];
+                }
+                while (jobs_list[0].pid > 0)
+                {
+                    pause();
+                }
+            }
+
             //printf("PADRE: Ha terminado mi hijo %d\n", wait(NULL));
             //Feim que el pare esperia al proces en primer pla
-            while (jobs_list[0].pid > 0)
-            {
-                pause();
-            }
         }
         else
         {
@@ -476,7 +483,7 @@ int main()
         signal(SIGTSTP, ctrlz);
         //comprov que la longuitud de la linia de comandos es major que 0, i executa el mètode read_line
         if (read_line(line))
-        {
+        {   
             //executa el mètode execute_line
             execute_line(line);
         }
