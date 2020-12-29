@@ -323,6 +323,10 @@ void reaper(int signum)
         jobs_list[0].pid = 0;
         printf("El fill que ha finalitzat es: %d\n", ended);
     }
+    else
+    {
+        jobs_list_remove(jobs_list_find(getpid())); //No tenc clar si aixo esta be
+    }
 }
 //Metode que atura el proces en primer pla
 void ctrlc(int signum)
@@ -430,6 +434,9 @@ int execute_line(char *line)
             printf("HIJO: getpid(), o sea PID del proceso hijo: %d\n", getpid());
             sleep(10);
             printf("HIJO: getppid(), o sea PID del proceso padre: %d\n", getppid());
+            signal(SIGINT, SIG_IGN);
+            signal(SIGTSTP, SIG_IGN);
+            signal(SIGCHLD, SIG_DFL);
             execvp(args[0], args);
             printf("HIJO: Si ve este mensaje, el execvp no funcionó...\n");
             exit(-1);
@@ -440,6 +447,7 @@ int execute_line(char *line)
             printf("PADRE: pid recibido de fork(), o sea PID del proceso hijo: %d\n", pid);
             printf("PADRE: getpid() o sea PID del proceso padre: %d\n", getpid());
             printf("PADRE: getppid() o sea PID del proceso padre del padre: %d\n", getppid());
+            jobs_list_add(pid, 'E', args);
             //printf("PADRE: Ha terminado mi hijo %d\n", wait(NULL));
             //Feim que el pare esperia al proces en primer pla
             while (jobs_list[0].pid > 0)
