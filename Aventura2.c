@@ -240,6 +240,7 @@ int internal_jobs(char **args)
     for (int i = 1; i < n_pids; i++)
     {
         printf("[%d]: PID: %d. COMMAND LINE: %d. STATUS: %d", i, jobs_list[i].pid, jobs_list[i].cmd, jobs_list[i].status);
+        printf("holowo");
     }
 }
 
@@ -316,54 +317,6 @@ int check_internal(char **args)
         return 0;
     }
 }
-//Metode enterrador
-void reaper(int signum)
-{
-    pid_t ended;
-    signal(SIGCHLD, reaper);
-    if (ended = (waitpid(-1, NULL, WNOHANG)) > 0)
-    {
-        jobs_list[0].pid = 0;
-        printf("El fill que ha finalitzat es: %d\n", ended);
-    }
-    else
-    {
-        jobs_list_remove(jobs_list_find(getpid())); //No tenc clar si aixo esta be
-    }
-}
-//Metode que atura el proces en primer pla
-void ctrlc(int signum)
-{
-    signal(SIGINT, ctrlc);
-    if (jobs_list[0].pid > 0)
-    {
-        if (getppid() != getpid())
-        {
-            kill(jobs_list[0].pid, SIGKILL);
-            printf("CTRL C executat amb exit\n");
-        }
-        else
-        {
-            printf("Señal SIGTERM no enviada debido a que el proceso en foreground es el shell\n");
-        }
-    }
-    else
-    {
-        printf("Señal SIGTERM no enviada debido a que no hay proceso en foreground\n");
-    }
-}
-void ctrlz(int signum)
-{
-    signal(SIGTSTP, ctrlz);
-    if (jobs_list[0].pid > 0)
-    {
-        //en proceso
-    }
-    else
-    {
-        printf("Señal SIGTSTP no enviada debido a que no hay proceso en foreground\n");
-    }
-}
 int jobs_list_add(pid_t pid, char status, char *cmd)
 {
     if (n_pids < N_JOBS)
@@ -407,6 +360,68 @@ int is_background(char **args, int numArgs)
         return 0;
     }
 }
+//Metode enterrador
+void reaper(int signum)
+{
+    pid_t ended;
+    signal(SIGCHLD, reaper);
+    if (ended = (waitpid(-1, NULL, WNOHANG)) > 0)
+    {
+        jobs_list[0].pid = 0;
+        printf("El fill que ha finalitzat es: %d\n", ended);
+    }
+    else
+    {
+        jobs_list_remove(jobs_list_find(getpid())); //No tenc clar si aixo esta be
+    }
+}
+//Metode que atura el proces en primer pla
+void ctrlc(int signum)
+{
+    signal(SIGINT, ctrlc);
+    if (jobs_list[0].pid > 0)
+    {
+        if (getppid() != getpid())
+        {
+            kill(jobs_list[0].pid, SIGKILL);
+            printf("CTRL C executat amb exit\n");
+        }
+        else
+        {
+            printf("Señal SIGTERM no enviada debido a que el proceso en foreground es el shell\n");
+        }
+    }
+    else
+    {
+        printf("Señal SIGTERM no enviada debido a que no hay proceso en foreground\n");
+    }
+}
+void ctrlz(int signum)
+{   
+    signal(SIGTSTP, ctrlz);
+    if (jobs_list[0].pid > 0)
+    {
+        if (jobs_list[0].pid != getpid())
+        {
+            kill(jobs_list[0].pid, SIGSTOP);
+            printf("CTRL-Z: Senyal SIGSTOP enviada al proces %d\n", jobs_list[0].pid);
+            jobs_list[0].status = 'D';
+            jobs_list_add(jobs_list[0].pid, jobs_list[0].status, jobs_list[0].cmd);
+            jobs_list[0].pid = 0;
+            jobs_list[0].status = NULL;
+            jobs_list[0].cmd[0] = NULL;
+        }
+        else
+        {
+            printf("Señal SIGSTOP no enviada debido a que el proceso en foreground es el shell\n");
+        }
+    }
+    else
+    {
+        printf("Señal SIGTSTP no enviada debido a que no hay proceso en foreground\n");
+    }
+}
+
 
 //crida a la funcio parse_args() i passa a la funcio check_internal() el retorn de parse_args
 int execute_line(char *line)
@@ -483,7 +498,7 @@ int main()
         signal(SIGTSTP, ctrlz);
         //comprov que la longuitud de la linia de comandos es major que 0, i executa el mètode read_line
         if (read_line(line))
-        {   
+        {
             //executa el mètode execute_line
             execute_line(line);
         }
