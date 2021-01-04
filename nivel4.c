@@ -17,9 +17,8 @@
 #include <sys/wait.h>
 #include <signal.h>
 
-int n_pids = 0; //variable global per controlar el nombre de treballs actius
+
 int execute_line(char *line);
-int jobs_list_remove(int pos);
 
 struct info_process
 {
@@ -238,77 +237,17 @@ int internal_source(char **args)
 
 int internal_jobs(char **args)
 {
-    for (int i = 1; i == n_pids; i++)
-    {
-        printf("[%d]: PID: %d. COMMAND LINE: %s. STATUS: %c\n", i, jobs_list[i].pid, jobs_list[i].cmd, jobs_list[i].status);
-    }
+    printf("Muestra el PID de los procesos que se están ejecutando en background \n");
 }
 
 int internal_fg(char **args)
 {
-    char cpos;
-    int pos;
-    if (args[1] != NULL)
-    {
-        cpos = *args[1];
-        pos = (int)cpos - 48;
-        if (!((pos > n_pids) || (pos == 0)))
-        {
-            kill(jobs_list[pos].pid, SIGCONT);
-            jobs_list[0].pid = jobs_list[pos].pid;
-            jobs_list[0].status = 'E';
-            strncpy(jobs_list[0].cmd, jobs_list[pos].cmd, 64);
-            jobs_list_remove(pos);
-            for (int i=0; i < 64; i++)
-            {
-                printf("%d ", jobs_list[pos].cmd[i]);
-            }
-            printf("\n");
-            while (jobs_list[0].pid > 0)
-            {
-                pause();
-            }
-        }
-        else
-        {
-            printf("FG--> No existeix el treball.\n");
-        }
-    }
-    else
-    {
-        printf("FG--> Sintaxis Incorrecta.\n");
-    }
+    printf("Envía un trabajo del background al foreground, o reactiva la ejecución en foreground de un trabajo que había sido detenido \n");
 }
 
 int internal_bg(char **args)
 {
-    char cpos;
-    int pos;
-    if (args[1] != NULL)
-    {
-        cpos = *args[1];
-        pos = (int)cpos - 48;
-        if (!((pos > n_pids) || (pos == 0)))
-        {
-            if (jobs_list[pos].status == 'E')
-            {
-                printf("El proces ja s'esta executant en segon pla\n");
-            }
-            else
-            {
-                jobs_list[pos].status = 'E';
-                kill(jobs_list[pos].pid, SIGCONT);
-            }
-        }
-        else
-        {
-            printf("BG--> No existeix el treball.\n");
-        }
-    }
-    else
-    {
-        printf("BG--> Sintaxis Incorrecta.\n");
-    }
+    printf("Reactiva un proceso detenido para que siga ejecutándose pero en segundo plano \n");
 }
 
 //comprovar si el comando passat per paràmetre és intern
@@ -327,7 +266,6 @@ int check_internal(char **args)
     if (args[0] == NULL)
     {
         //Evitam una violacio de segment
-        return 1;
     }
     //comprovar si es el comando cd
     else if (strcmp(strs[0], args[0]) == 0)
@@ -375,90 +313,26 @@ int check_internal(char **args)
         return 0;
     }
 }
-int jobs_list_add(pid_t pid, char status, char *cmd)
-{
-    if (n_pids < N_JOBS)
-    {
-        n_pids++;
-        jobs_list[n_pids].pid = pid;
-        jobs_list[n_pids].status = status;
-        for (int i = 0; i < COMMAND_LINE_SIZE; i++)
-        {
-            jobs_list[n_pids].cmd[i] = cmd[i];
-        }
-    }
-}
-int jobs_list_find(pid_t pid)
-{
-    for (int i = 0; i < n_pids; i++)
-    {
-        if (jobs_list[i].pid == pid)
-        {
-            return i;
-        }
-    }
-    printf("Job list find-> no trobat\n");
-
-    return -1;
-}
-
-int jobs_list_remove(int pos)
-{
-    jobs_list[pos] = jobs_list[n_pids];
-    n_pids--;
-}
-int is_background(char **args, int numArgs)
-{
-    if (numArgs > 1)
-    {
-        printf("fer background\n");
-        if (*args[numArgs - 1] == '&')
-        {
-            args[numArgs - 1] = NULL;
-            return 1;
-        }
-        else
-        {
-            return 0;
-        }
-    }else{
-        return 0;
-    }
-}
 //Metode enterrador
 void reaper(int signum)
-{
-    signal(SIGCHLD, reaper);
+{   
     pid_t ended;
-    if (ended = (waitpid(-1, NULL, WNOHANG)) > 0)
-    {
-        printf("FILL que ha acabat: %d\n", ended);
-        fflush(stdout);
-        if (ended == jobs_list[0].pid)
-        {
-            jobs_list[0].pid = 0;
-            printf("El fill que ha finalitzat es %d, i estava en foreground.\n", jobs_list[0].pid);
-        }
-        else
-        {
-            if (jobs_list_find(ended) != -1)
-            {
-                jobs_list_remove(jobs_list_find(ended));
-                printf("El fill que ha finalitzat es: %d\n", ended);
-            }
-        }
-        jobs_list[0].pid = 0; //provisional
+    signal(SIGCHLD, reaper); //sigchld Aixo es provisional perque me dona warning i no se si es necesari
+    if (ended=(waitpid(-1, NULL, WNOHANG)) > 0) {
+        jobs_list[0].pid = 0;
+        printf("El fill que ha finalitzat es: %d\n", ended);
     }
+
 }
 //Metode que atura el proces en primer pla
 void ctrlc(int signum)
 {
-    signal(SIGINT, ctrlc);
+    signal(SIGINT, ctrlc); //siginit Aixo es provisional perque me dona warning i no se si es necesari
     if (jobs_list[0].pid > 0)
     {
         if (getppid() != getpid())
         {
-            kill(jobs_list[0].pid, SIGKILL);
+            kill(jobs_list[0].pid,SIGKILL);
             printf("CTRL C executat amb exit\n");
         }
         else
@@ -471,40 +345,14 @@ void ctrlc(int signum)
         printf("Señal SIGTERM no enviada debido a que no hay proceso en foreground\n");
     }
 }
-void ctrlz(int signum)
-{
-    signal(SIGTSTP, ctrlz);
-    if (jobs_list[0].pid > 0)
-    {
-        if (jobs_list[0].pid != getpid())
-        {
-            kill(jobs_list[0].pid, SIGSTOP);
-            printf("CTRL-Z: Senyal SIGSTOP enviada al proces %d\n", jobs_list[0].pid);
-            jobs_list_add(jobs_list[0].pid, 'D', jobs_list[0].cmd);
-            jobs_list[0].pid = 0;
-        }
-        else
-        {
-            printf("Señal SIGSTOP no enviada debido a que el proceso en foreground es el shell\n");
-        }
-    }
-    else
-    {
-        printf("Señal SIGTSTP no enviada debido a que no hay proceso en foreground\n");
-    }
-}
 
 //crida a la funcio parse_args() i passa a la funcio check_internal() el retorn de parse_args
 int execute_line(char *line)
 {
-    //declaració varibale punter chars
+    //declaració varibale punter char
     char *args[ARGS_SIZE];
-    //variable que conte el numero d'arguments introduits per l'usuari
-    int numArgs = parse_args(args, line);
-    //variable que indica si el proces s'ha d'executar en background
-    int background = is_background(args, numArgs);
 
-    printf("El nombre de tokens és: %d \n", numArgs);
+    printf("El nombre de tokens és: %d \n", parse_args(args, line));
     //executa el mètode check_internal
     if (!check_internal(args))
     {
@@ -514,37 +362,24 @@ int execute_line(char *line)
         if (pid == 0)
         { // fill
             printf("HIJO: getpid(), o sea PID del proceso hijo: %d\n", getpid());
+            sleep(10);
             printf("HIJO: getppid(), o sea PID del proceso padre: %d\n", getppid());
-            signal(SIGINT, SIG_IGN);
-            signal(SIGTSTP, SIG_IGN);
-            signal(SIGCHLD, SIG_DFL);
             execvp(args[0], args);
             printf("HIJO: Si ve este mensaje, el execvp no funcionó...\n");
             exit(-1);
         }
         else if (pid > 0)
         { // pare
+            jobs_list[0].pid = pid;
             printf("PADRE: pid recibido de fork(), o sea PID del proceso hijo: %d\n", pid);
             printf("PADRE: getpid() o sea PID del proceso padre: %d\n", getpid());
             printf("PADRE: getppid() o sea PID del proceso padre del padre: %d\n", getppid());
-            if (background)
-            {
-                printf("reistre jobs");
-                fflush(stdout);
-                jobs_list_add(pid, 'E', *args);
-            }
-            else
-            {
-                jobs_list[0].pid = pid;
-                jobs_list[0].status = 'E';
-                strncpy(jobs_list[0].cmd, *args, 64);
-                while (jobs_list[0].pid > 0)
-                {
-                    pause();
-                }
-            }
-
             //printf("PADRE: Ha terminado mi hijo %d\n", wait(NULL));
+            //Feim que el pare esperia al proces en primer pla
+            while (jobs_list[0].pid > 0)
+            {
+                pause();
+            }
         }
         else
         {
@@ -562,9 +397,8 @@ int main()
     //bucle infinit perquè la consola estigu constantment esperant un fluxe d'entrada de dades
     while (1)
     {
-        signal(SIGCHLD, reaper);
-        signal(SIGINT, ctrlc);
-        signal(SIGTSTP, ctrlz);
+        signal(SIGCHLD, reaper); //sigchld
+        signal(SIGINT, ctrlc);   //siginit
         //comprov que la longuitud de la linia de comandos es major que 0, i executa el mètode read_line
         if (read_line(line))
         {
