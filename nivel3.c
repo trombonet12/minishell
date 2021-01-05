@@ -59,41 +59,29 @@ int parse_args(char **args, char *line)
     token = strtok(line, s);
     //assignam a la posicio counter-èssima el valor de token
     args[counter] = token;
-    printf("DINS LA FUNCIO PARSE_ARGS \n");
     while (token != NULL)
     {
         //comprovar si missatge introduït és un comentari
         if (token[0] == '#')
         {
-            printf("Parse_args()-->token %d : %s \n", counter, token);
-            printf("Parse_args()-->token %d : corregido (null) \n", counter);
-
             token = strtok(NULL, s);
             //assignam a la posicio counter-èssima el valor de token
             args[counter] = token;
             break;
         }
-
-        //imprimim per pantalla el valor de counter i de token
-        printf("Parse_args()-->token %d : %s \n", counter, token);
         //incrementam countre amb una unitat
         counter++;
         token = strtok(NULL, s);
         //assignam a la posicio counter-èssima el valor de token
         args[counter] = token;
     }
-    //imprimim per pantalla el valor de counter i de token
-    printf("Parse_args()-->token %d : %s \n", counter, token);
-
     return counter;
 }
 //canviar el directori
 int internal_cd(char **args)
 {
-
     char buffer[1024];
 
-    printf("DINS LA FUNCIO INTERNAL_CD \n");
     //obtenir el directori anterior al desitjat
     if (getcwd(buffer, sizeof(buffer)) == NULL)
     {
@@ -140,15 +128,11 @@ int internal_export(char **args)
     const char s[2] = "=\n";
     char *nom;
     char *valor;
-    printf("DINS LA FUNICO INTERNAL_EXPORT \n");
-    printf("Contingut de args[1] --> %s \n", args[1]);
     if (args[1] != NULL)
     {
         //dividim el segon token en variable i valor introduit
         nom = strtok(args[1], s);
-        printf("Parse_args()-->token: %s \n", nom);
         valor = strtok(NULL, s);
-        printf("Parse_args()-->token: %s \n", valor);
 
         //comprovam que hi hagi arguments necessaris per realitzar l'operació
         if ((nom == NULL) && (valor == NULL))
@@ -308,8 +292,7 @@ int execute_line(char *line)
 {
     //declaració varibale punter char
     char *args[ARGS_SIZE];
-
-    printf("El nombre de tokens és: %d \n", parse_args(args, line));
+    parse_args(args, line);
     //executa el mètode check_internal
     if (!check_internal(args))
     {
@@ -347,7 +330,6 @@ int main()
     //bucle infinit perquè la consola estigu constantment esperant un fluxe d'entrada de dades
     while (1)
     {
-
         //comprov que la longuitud de la linia de comandos es major que 0, i executa el mètode read_line
         if (read_line(line))
         {
