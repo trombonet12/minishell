@@ -1,3 +1,5 @@
+//AUTORS: Miquel Vidal Cortés i Joan López Ferrer
+
 #define _POSIX_C_SOURCE 200112L
 #define COMMAND_LINE_SIZE 1024
 #define ARGS_SIZE 64
@@ -46,31 +48,22 @@ int parse_args(char **args, char *line)
     token = strtok(line, s);
     //assignam a la posicio counter-èssima el valor de token
     args[counter] = token;
-    printf("DINS LA FUNCIO PARSE_ARGS \n");
     while (token != NULL)
     {
         //comprovar si missatge introduït és un comentari
         if (token[0] == '#')
         {
-            printf("Parse_args()-->token %d : %s \n", counter, token);
-            printf("Parse_args()-->token %d : corregido (null) \n", counter);
-
             token = strtok(NULL, s);
             //assignam a la posicio counter-èssima el valor de token
             args[counter] = token;
             break;
         }
-
-        //imprimim per pantalla el valor de counter i de token
-        printf("Parse_args()-->token %d : %s \n", counter, token);
         //incrementam countre amb una unitat
         counter++;
         token = strtok(NULL, s);
         //assignam a la posicio counter-èssima el valor de token
         args[counter] = token;
     }
-    //imprimim per pantalla el valor de counter i de token
-    printf("Parse_args()-->token %d : %s \n", counter, token);
 
     return counter;
 }
@@ -122,14 +115,14 @@ int internal_cd(char **args)
 //canviar una variable d'entorn
 int internal_export(char **args)
 {
-    
+
     const char s[2] = "=\n";
     char *nom;
     char *valor;
     printf("DINS LA FUNICO INTERNAL_EXPORT \n");
     printf("Contingut de args[1] --> %s \n", args[1]);
     if (args[1] != NULL)
-    {   
+    {
         //dividim el segon token en variable i valor introduit
         nom = strtok(args[1], s);
         printf("Parse_args()-->token: %s \n", nom);
@@ -138,30 +131,30 @@ int internal_export(char **args)
 
         //comprovam que hi hagi arguments necessaris per realitzar l'operació
         if ((nom == NULL) && (valor == NULL))
-        {   
+        {
             //avisam a l'usuari de l'error de sintaxis
             printf("Sintaxis Incorrecta. Us correcte: export NOM=VALOR \n");
         }
         else
-        {   
+        {
             //comprovam que la variable d'entorn introduida existeix
             if (getenv(nom) == NULL && valor != NULL)
-            {   
+            {
                 //informam al usuari que la variable que ha introduit no existeix
                 printf("No existeix aquesta variable d'entorn: %s \n", nom);
             }
             else
-            {   
+            {
                 printf("Valor Inicial %s \n", getenv(nom));
                 //comprovam que hi hagi un valor a introduir a la variable d'entorn
                 if (valor != NULL)
-                {   
+                {
                     //assignam el nou valor a la variable introduida
                     setenv(nom, valor, 1);
                     printf("Valor Final --> %s \n", getenv(nom));
                 }
                 else
-                {   
+                {
                     //avisam a l'usuari de l'error de sintaxis
                     printf("Sintaxis Incorrecta. Us correcte: export NOM=VALOR \n");
                 }
@@ -169,7 +162,7 @@ int internal_export(char **args)
         }
     }
     else
-    {   
+    {
         //avisam a l'usuari de l'error de sintaxis
         printf("Sintaxis Incorrecta. Us correcte: export NOM=VALOR \n");
     }
@@ -264,8 +257,7 @@ int execute_line(char *line)
 {
     //declaració varibale punter char
     char *args[ARGS_SIZE];
-
-    printf("El nombre de tokens és: %d \n", parse_args(args, line));
+    parse_args(args, line);
     //executa el mètode check_internal
     check_internal(args);
 }

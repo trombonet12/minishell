@@ -1,3 +1,5 @@
+//AUTORS: Miquel Vidal Cortés i Joan López Ferrer
+
 #define _POSIX_C_SOURCE 200112L
 #define COMMAND_LINE_SIZE 1024
 #define ARGS_SIZE 64
@@ -16,7 +18,6 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <signal.h>
-
 
 int execute_line(char *line);
 
@@ -70,41 +71,28 @@ int parse_args(char **args, char *line)
     token = strtok(line, s);
     //assignam a la posicio counter-èssima el valor de token
     args[counter] = token;
-    printf("DINS LA FUNCIO PARSE_ARGS \n");
     while (token != NULL)
     {
         //comprovar si missatge introduït és un comentari
         if (token[0] == '#')
         {
-            printf("Parse_args()-->token %d : %s \n", counter, token);
-            printf("Parse_args()-->token %d : corregido (null) \n", counter);
-
             token = strtok(NULL, s);
             //assignam a la posicio counter-èssima el valor de token
             args[counter] = token;
             break;
         }
-
-        //imprimim per pantalla el valor de counter i de token
-        printf("Parse_args()-->token %d : %s \n", counter, token);
         //incrementam countre amb una unitat
         counter++;
         token = strtok(NULL, s);
         //assignam a la posicio counter-èssima el valor de token
         args[counter] = token;
     }
-    //imprimim per pantalla el valor de counter i de token
-    printf("Parse_args()-->token %d : %s \n", counter, token);
-
     return counter;
 }
 //canviar el directori
 int internal_cd(char **args)
 {
-
     char buffer[1024];
-
-    printf("DINS LA FUNCIO INTERNAL_CD \n");
     //obtenir el directori anterior al desitjat
     if (getcwd(buffer, sizeof(buffer)) == NULL)
     {
@@ -147,20 +135,14 @@ int internal_cd(char **args)
 //canviar una variable d'entorn
 int internal_export(char **args)
 {
-
     const char s[2] = "=\n";
     char *nom;
     char *valor;
-    printf("DINS LA FUNICO INTERNAL_EXPORT \n");
-    printf("Contingut de args[1] --> %s \n", args[1]);
     if (args[1] != NULL)
     {
         //dividim el segon token en variable i valor introduit
         nom = strtok(args[1], s);
-        printf("Parse_args()-->token: %s \n", nom);
         valor = strtok(NULL, s);
-        printf("Parse_args()-->token: %s \n", valor);
-
         //comprovam que hi hagi arguments necessaris per realitzar l'operació
         if ((nom == NULL) && (valor == NULL))
         {
@@ -202,7 +184,6 @@ int internal_export(char **args)
 
 int internal_source(char **args)
 {
-    printf("DINS LA FUNCIO INTERNAL_SOURCE\n");
     //comprovam que la sintaxis de l'ordre sigui correcte
     if (args[1] != NULL)
     {
@@ -315,24 +296,23 @@ int check_internal(char **args)
 }
 //Metode enterrador
 void reaper(int signum)
-{   
+{
     pid_t ended;
-    signal(SIGCHLD, reaper); //sigchld Aixo es provisional perque me dona warning i no se si es necesari
-    if (ended=(waitpid(-1, NULL, WNOHANG)) > 0) {
+    signal(SIGCHLD, reaper);
+    if (ended = (waitpid(-1, NULL, WNOHANG)) > 0)
+    {
         jobs_list[0].pid = 0;
-        printf("El fill que ha finalitzat es: %d\n", ended);
     }
-
 }
 //Metode que atura el proces en primer pla
 void ctrlc(int signum)
 {
-    signal(SIGINT, ctrlc); //siginit Aixo es provisional perque me dona warning i no se si es necesari
+    signal(SIGINT, ctrlc);
     if (jobs_list[0].pid > 0)
     {
         if (getppid() != getpid())
         {
-            kill(jobs_list[0].pid,SIGKILL);
+            kill(jobs_list[0].pid, SIGKILL);
             printf("CTRL C executat amb exit\n");
         }
         else
@@ -351,8 +331,7 @@ int execute_line(char *line)
 {
     //declaració varibale punter char
     char *args[ARGS_SIZE];
-
-    printf("El nombre de tokens és: %d \n", parse_args(args, line));
+    parse_args(args, line);
     //executa el mètode check_internal
     if (!check_internal(args))
     {
@@ -374,7 +353,6 @@ int execute_line(char *line)
             printf("PADRE: pid recibido de fork(), o sea PID del proceso hijo: %d\n", pid);
             printf("PADRE: getpid() o sea PID del proceso padre: %d\n", getpid());
             printf("PADRE: getppid() o sea PID del proceso padre del padre: %d\n", getppid());
-            //printf("PADRE: Ha terminado mi hijo %d\n", wait(NULL));
             //Feim que el pare esperia al proces en primer pla
             while (jobs_list[0].pid > 0)
             {
@@ -397,8 +375,8 @@ int main()
     //bucle infinit perquè la consola estigu constantment esperant un fluxe d'entrada de dades
     while (1)
     {
-        signal(SIGCHLD, reaper); //sigchld
-        signal(SIGINT, ctrlc);   //siginit
+        signal(SIGCHLD, reaper);
+        signal(SIGINT, ctrlc);   
         //comprov que la longuitud de la linia de comandos es major que 0, i executa el mètode read_line
         if (read_line(line))
         {

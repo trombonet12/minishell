@@ -386,6 +386,7 @@ int jobs_list_find(pid_t pid)
             return i;
         }
     }
+    printf("Job list find-> no trobat\n");
 
     return -1;
 }
@@ -424,6 +425,7 @@ void reaper(int signum)
     pid_t ended;
     if (ended = (waitpid(-1, NULL, WNOHANG)) > 0)
     {
+        printf("FILL que ha acabat: %d\n", ended);
         fflush(stdout);
         if (ended == jobs_list[0].pid)
         {
