@@ -16,6 +16,9 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <signal.h>
+#include <sys/types.h> 
+#include <sys/stat.h> 
+#include <fcntl.h> 
 
 int n_pids = 0; //variable global per controlar el nombre de treballs actius
 int execute_line(char *line);
@@ -259,7 +262,7 @@ int internal_fg(char **args)
             jobs_list[0].status = 'E';
             strncpy(jobs_list[0].cmd, jobs_list[pos].cmd, 64);
             jobs_list_remove(pos);
-            for (int i=0; i < 64; i++)
+            for (int i = 0; i < 64; i++)
             {
                 printf("%d ", jobs_list[pos].cmd[i]);
             }
@@ -421,7 +424,9 @@ int is_background(char **args, int numArgs)
         {
             return 0;
         }
-    }else{
+    }
+    else
+    {
         return 0;
     }
 }
@@ -494,6 +499,29 @@ void ctrlz(int signum)
     }
 }
 
+int is_output_redirection(char **args, int numArgs)
+{
+    int file;
+    for (int i = 0; i < numArgs; i++)
+    {
+        if (*args[i] == '>')
+        {
+            if (args[i + 1] != NULL)
+            {
+                file = open(args[i + 1],O_WRONLY|O_APPEND);
+                dup2(file, 1);
+                close(file);
+            }
+            else
+            {
+                printf("Output Redirectionation--> Sintaxis Incorrecta.\n");
+            }
+            args[i] = NULL;
+            return 1;
+        }
+    }
+    return 0;
+}
 //crida a la funcio parse_args() i passa a la funcio check_internal() el retorn de parse_args
 int execute_line(char *line)
 {
@@ -518,7 +546,9 @@ int execute_line(char *line)
             signal(SIGINT, SIG_IGN);
             signal(SIGTSTP, SIG_IGN);
             signal(SIGCHLD, SIG_DFL);
+            is_output_redirection(args, numArgs);
             execvp(args[0], args);
+            args[0] = NULL;
             printf("HIJO: Si ve este mensaje, el execvp no funcionó...\n");
             exit(-1);
         }
