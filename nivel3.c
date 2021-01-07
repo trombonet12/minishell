@@ -122,6 +122,7 @@ int internal_cd(char **args)
         //imprimir per pantalla el directori actualitzat
         printf("Directori Actual --> %s \n", buffer);
     }
+    return 0;
 }
 //canviar una variable d'entorn
 int internal_export(char **args)
@@ -173,6 +174,7 @@ int internal_export(char **args)
         //avisam a l'usuari de l'error de sintaxis
         printf("Sintaxis Incorrecta. Us correcte: export NOM=VALOR \n");
     }
+    return 0;
 }
 
 int internal_source(char **args)
@@ -208,21 +210,25 @@ int internal_source(char **args)
     {
         printf("Sintaxis Incorrecta. Us correcte: source <nom del fitxer>\n");
     }
+    return 0;
 }
 
 int internal_jobs(char **args)
 {
     printf("Muestra el PID de los procesos que se están ejecutando en background \n");
+    return 0;
 }
 
 int internal_fg(char **args)
 {
     printf("Envía un trabajo del background al foreground, o reactiva la ejecución en foreground de un trabajo que había sido detenido \n");
+    return 0;
 }
 
 int internal_bg(char **args)
 {
     printf("Reactiva un proceso detenido para que siga ejecutándose pero en segundo plano \n");
+    return 0;
 }
 
 //comprovar si el comando passat per paràmetre és intern
@@ -283,10 +289,7 @@ int check_internal(char **args)
     {
         exit(0);
     }
-    else
-    {
-        return 0;
-    }
+    return 0;
 }
 
 //crida a la funcio parse_args() i passa a la funcio check_internal() el retorn de parse_args
@@ -322,6 +325,7 @@ int execute_line(char *line)
             fprintf(stderr, "Error %d: %s \n", errno, strerror(errno));
         }
     }
+    return 0;
 }
 //metode main
 int main()
