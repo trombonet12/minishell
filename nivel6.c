@@ -136,6 +136,7 @@ int internal_cd(char **args)
         //imprimir per pantalla el directori actualitzat
         printf("Directori Actual --> %s \n", buffer);
     }
+    return 0;
 }
 //canviar una variable d'entorn
 int internal_export(char **args)
@@ -187,6 +188,7 @@ int internal_export(char **args)
         //avisam a l'usuari de l'error de sintaxis
         printf("Sintaxis Incorrecta. Us correcte: export NOM=VALOR \n");
     }
+    return 0;
 }
 
 int internal_source(char **args)
@@ -221,6 +223,7 @@ int internal_source(char **args)
     {
         printf("Sintaxis Incorrecta. Us correcte: source <nom del fitxer>\n");
     }
+    return 0;
 }
 //Metode que imprimeix job list
 int internal_jobs(char **args)
@@ -229,6 +232,7 @@ int internal_jobs(char **args)
     {
         printf("[%d]: PID: %d. COMMAND LINE: %s. STATUS: %c\n", i, jobs_list[i].pid, jobs_list[i].cmd, jobs_list[i].status);
     }
+    return 0;
 }
 //metode que mou un proces al primer pla
 int internal_fg(char **args)
@@ -265,6 +269,7 @@ int internal_fg(char **args)
     {
         printf("FG--> Sintaxis Incorrecta.\n");
     }
+    return 0;
 }
 //metode que envia un proces a segon pla
 int internal_bg(char **args)
@@ -296,6 +301,7 @@ int internal_bg(char **args)
     {
         printf("BG--> Sintaxis Incorrecta.\n");
     }
+    return 0;
 }
 
 //comprovar si el comando passat per paràmetre és intern
@@ -357,10 +363,7 @@ int check_internal(char **args)
     {
         exit(0);
     }
-    else
-    {
-        return 0;
-    }
+    return 0;
 }
 //metode que afegeix una entrada a job list
 int jobs_list_add(pid_t pid, char status, char *cmd)
@@ -375,6 +378,7 @@ int jobs_list_add(pid_t pid, char status, char *cmd)
             jobs_list[n_pids].cmd[i] = cmd[i];
         }
     }
+    return 0;
 }
 //metode que cerca un pid a job list i retorna la seva posicio
 int jobs_list_find(pid_t pid)
@@ -395,6 +399,7 @@ int jobs_list_remove(int pos)
 {
     jobs_list[pos] = jobs_list[n_pids];
     n_pids--;
+    return 0;
 }
 //Metode que comprova si s'ha d'executar en segon pla
 int is_background(char **args, int numArgs)
@@ -403,7 +408,7 @@ int is_background(char **args, int numArgs)
     {
         //comprovam si el darrer argument es &
         if (*args[numArgs - 1] == '&')
-        {   
+        {
             //eliminam & i enviam un true
             args[numArgs - 1] = NULL;
             return 1;
@@ -423,7 +428,7 @@ void reaper(int signum)
 {
     signal(SIGCHLD, reaper);
     pid_t ended;
-    if (ended = (waitpid(-1, NULL, WNOHANG)) > 0)
+    if ((ended = (waitpid(-1, NULL, WNOHANG))) > 0)
     {
         printf("FILL que ha acabat: %d\n", ended);
         fflush(stdout);
@@ -576,6 +581,7 @@ int execute_line(char *line)
             fprintf(stderr, "Error %d: %s \n", errno, strerror(errno));
         }
     }
+    return 0;
 }
 //metode main
 int main()

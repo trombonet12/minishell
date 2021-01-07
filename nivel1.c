@@ -15,7 +15,6 @@
 void imprimir_prompt()
 {
     char *PWD = getenv("PWD");
-    char *HOME = getenv("HOME");
     char *USER = getenv("USER");
 
     printf(VERMELL_T "%s" VERDE_T ":~" AMARILLO_T "%s-SOI" BLANCO_T "%c " RESET_COLOR, USER, PWD, PROMPT);
@@ -71,31 +70,37 @@ int parse_args(char **args, char *line)
 int internal_cd(char **args)
 {
     printf("Para cambiar de directorio actual de trabajo \n");
+    return 0;
 }
 
 int internal_export(char **args)
 {
     printf("Para asignar variables de entorno \n");
+    return 0;
 }
 
 int internal_source(char **args)
 {
     printf("Ejecuta las líneas de comandos del fichero nombre \n");
+    return 0;
 }
 
 int internal_jobs(char **args)
 {
     printf("Muestra el PID de los procesos que se están ejecutando en background \n");
+    return 0;
 }
 
 int internal_fg(char **args)
 {
     printf("Envía un trabajo del background al foreground, o reactiva la ejecución en foreground de un trabajo que había sido detenido \n");
+    return 0;
 }
 
 int internal_bg(char **args)
 {
     printf("Reactiva un proceso detenido para que siga ejecutándose pero en segundo plano \n");
+    return 0;
 }
 
 int check_internal(char **args)
@@ -159,6 +164,7 @@ int execute_line(char *line)
     printf("Contador: %d \n", parse_args(args, line));
     //executa el mètode check_internal
     check_internal(args);
+    return 0;
 }
 
 int main()
