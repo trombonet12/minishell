@@ -42,7 +42,7 @@ void imprimir_prompt()
     char *PWD = getenv("PWD");
     char *USER = getenv("USER");
 
-    printf(VERMELL_T "%s" VERDE_T ":~" AMARILLO_T "%s-SOI" BLANCO_T "%c " RESET_COLOR, USER, PWD, PROMPT);
+    printf(VERMELL_T "%s" VERDE_T ":~" AMARILLO_T "%s" BLANCO_T "%c " RESET_COLOR, USER, PWD, PROMPT);
 }
 
 //imprimir el prompt i llegir una linia de codi amb char *fgets(char *str, int n, sream FILE*)
@@ -228,9 +228,10 @@ int internal_source(char **args)
 //Metode que imprimeix job list
 int internal_jobs(char **args)
 {
-    for (int i = 1; i == n_pids; i++)
+    for (int i = 1; i < (n_pids+1); i++)
     {
         printf("[%d]: PID: %d. COMMAND LINE: %s. STATUS: %c\n", i, jobs_list[i].pid, jobs_list[i].cmd, jobs_list[i].status);
+        
     }
     return 0;
 }
@@ -433,7 +434,6 @@ void reaper(int signum)
         if (ended == jobs_list[0].pid)
         {
             jobs_list[0].pid = 0;
-            printf("El fill que ha finalitzat es %d, i estava en foreground.\n", jobs_list[0].pid);
         }
         else
         {
@@ -510,7 +510,7 @@ int is_output_redirection(char **args, int numArgs)
             if (args[i + 1] != NULL)
             {
                 //obrim l'artxiu
-                file = open(args[i + 1], O_WRONLY | O_APPEND);
+                file = open(args[i + 1], O_RDWR | O_APPEND | O_CREAT,0777);
                 //associam stdout amb el fitxer
                 dup2(file, 1);
                 //tancam el fitxer
@@ -559,6 +559,9 @@ int execute_line(char *line)
             {
                 //ho afegim a jobs list
                 jobs_list_add(pid, 'E', *args);
+                printf("pocoloco");
+                fflush(stdout);
+                args[0]=NULL;
             }
             else
             {
