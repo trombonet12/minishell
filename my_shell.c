@@ -250,11 +250,7 @@ int internal_fg(char **args)
             jobs_list[0].status = 'E';
             strncpy(jobs_list[0].cmd, jobs_list[pos].cmd, 64);
             jobs_list_remove(pos);
-            for (int i = 0; i < 64; i++)
-            {
-                printf("%d ", jobs_list[pos].cmd[i]);
-            }
-            printf("\n");
+            printf("COMMAND LINE: %s.\n",jobs_list[0].cmd);
             while (jobs_list[0].pid > 0)
             {
                 pause();
@@ -289,12 +285,13 @@ int internal_bg(char **args)
             else
             {
                 jobs_list[pos].status = 'E';
+                printf("[%d]: PID: %d. COMMAND LINE: %s. STATUS: %c\n", pos, jobs_list[pos].pid, jobs_list[pos].cmd, jobs_list[pos].status);
                 kill(jobs_list[pos].pid, SIGCONT);
             }
         }
         else
         {
-            printf("BG--> No existeix el treball.\n");
+            printf("internal_bg()--> No existeix el treball.\n");
         }
     }
     else
@@ -425,15 +422,24 @@ int is_background(char **args, int numArgs)
 //Metode enterrador
 void reaper(int signum)
 {
-
+    signal(SIGCHLD, reaper);
     pid_t ended;
-    while ((ended = waitpid(-1, NULL, WNOHANG)) > 0)
-    {
-        fflush(stdout);
+    int status;
+    while ((ended = waitpid(-1, &status, WNOHANG)) > 0)
+    { 
+        /*
+        if (!WIFEXITED(status))
+        {   
+            printf("El fill no ha acabat correctament %d\n", status);
+        }
+        if (!WIFSIGNALED(status))
+        {
+            printf("El fill que ha acabat per una senyal%d\n",WTERMSIG(status));
+        }
+        */
         if (ended == jobs_list[0].pid)
         {
             jobs_list[0].pid = 0;
-            printf("El fill que ha finalitzat estava en primer pla\n");
         }
         else
         {
@@ -444,7 +450,6 @@ void reaper(int signum)
             }
         }
     }
-    signal(SIGCHLD, reaper);
 }
 //Metode que atura el proces en primer pla
 void ctrlc(int signum)
@@ -535,6 +540,8 @@ int execute_line(char *line)
     int numArgs = parse_args(args, line);
     //variable que indica si el proces s'ha d'executar en background
     int background = is_background(args, numArgs);
+    if (background)
+        numArgs--;
     //executa el mètode check_internal
     if (!check_internal(args))
     {
@@ -544,15 +551,12 @@ int execute_line(char *line)
         { // fill
             signal(SIGINT, SIG_IGN);
             signal(SIGTSTP, SIG_IGN);
+            signal(SIGCHLD, SIG_DFL);
             //comprovam si s'ha de redireccionar la sortida a un artxiu
             is_output_redirection(args, numArgs);
             //ho executam
-            printf("HIJO: Voy a ejectar\n");
-            fflush(stdout);
             execvp(args[0], args);
-            printf("HIJO: Si ve este mensaje, el execvp no funcionó...\n");
             exit(-1);
-            signal(SIGCHLD, SIG_DFL);
         }
         else if (pid > 0)
         { // pare
@@ -562,7 +566,6 @@ int execute_line(char *line)
             {
                 //ho afegim a jobs list
                 jobs_list_add(pid, 'E', *args);
-                args[0] = NULL;
                 sleep(1);
             }
             else
@@ -578,6 +581,7 @@ int execute_line(char *line)
                     pause();
                 }
             }
+            *args[0] = *args[ARGS_SIZE];
         }
         else
         {
