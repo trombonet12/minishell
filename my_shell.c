@@ -228,10 +228,9 @@ int internal_source(char **args)
 //Metode que imprimeix job list
 int internal_jobs(char **args)
 {
-    for (int i = 1; i < (n_pids+1); i++)
+    for (int i = 1; i < (n_pids + 1); i++)
     {
         printf("[%d]: PID: %d. COMMAND LINE: %s. STATUS: %c\n", i, jobs_list[i].pid, jobs_list[i].cmd, jobs_list[i].status);
-        
     }
     return 0;
 }
@@ -384,7 +383,7 @@ int jobs_list_add(pid_t pid, char status, char *cmd)
 //metode que cerca un pid a job list i retorna la seva posicio
 int jobs_list_find(pid_t pid)
 {
-    for (int i = 0; i < n_pids; i++)
+    for (int i = 0; i < (n_pids + 1); i++)
     {
         if (jobs_list[i].pid == pid)
         {
@@ -426,14 +425,15 @@ int is_background(char **args, int numArgs)
 //Metode enterrador
 void reaper(int signum)
 {
-    signal(SIGCHLD, reaper);
+
     pid_t ended;
-    if ((ended = (waitpid(-1, NULL, WNOHANG))) > 0)
+    while ((ended = waitpid(-1, NULL, WNOHANG)) > 0)
     {
         fflush(stdout);
         if (ended == jobs_list[0].pid)
         {
             jobs_list[0].pid = 0;
+            printf("El fill que ha finalitzat estava en primer pla\n");
         }
         else
         {
@@ -443,8 +443,8 @@ void reaper(int signum)
                 printf("El fill que ha finalitzat es: %d\n", ended);
             }
         }
-        jobs_list[0].pid = 0; //provisional
     }
+    signal(SIGCHLD, reaper);
 }
 //Metode que atura el proces en primer pla
 void ctrlc(int signum)
@@ -510,7 +510,7 @@ int is_output_redirection(char **args, int numArgs)
             if (args[i + 1] != NULL)
             {
                 //obrim l'artxiu
-                file = open(args[i + 1], O_RDWR | O_APPEND | O_CREAT,0777);
+                file = open(args[i + 1], O_RDWR | O_APPEND | O_CREAT, 0777);
                 //associam stdout amb el fitxer
                 dup2(file, 1);
                 //tancam el fitxer
@@ -544,24 +544,26 @@ int execute_line(char *line)
         { // fill
             signal(SIGINT, SIG_IGN);
             signal(SIGTSTP, SIG_IGN);
-            signal(SIGCHLD, SIG_DFL);
             //comprovam si s'ha de redireccionar la sortida a un artxiu
             is_output_redirection(args, numArgs);
             //ho executam
+            printf("HIJO: Voy a ejectar\n");
+            fflush(stdout);
             execvp(args[0], args);
             printf("HIJO: Si ve este mensaje, el execvp no funcionó...\n");
             exit(-1);
+            signal(SIGCHLD, SIG_DFL);
         }
         else if (pid > 0)
         { // pare
             //comprovam si s'ha d'executar en segon pla
+
             if (background)
             {
                 //ho afegim a jobs list
                 jobs_list_add(pid, 'E', *args);
-                printf("pocoloco");
-                fflush(stdout);
-                args[0]=NULL;
+                args[0] = NULL;
+                sleep(1);
             }
             else
             {
@@ -569,6 +571,7 @@ int execute_line(char *line)
                 jobs_list[0].pid = pid;
                 jobs_list[0].status = 'E';
                 strncpy(jobs_list[0].cmd, *args, 64);
+                sleep(1);
                 //mentres hi ha un proces en foreground el pare espera
                 while (jobs_list[0].pid > 0)
                 {
