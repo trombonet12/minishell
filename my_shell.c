@@ -42,7 +42,7 @@ void imprimir_prompt()
     char *PWD = getenv("PWD");
     char *USER = getenv("USER");
 
-    printf(VERMELL_T "%s" VERDE_T ":~" AMARILLO_T "%s-SOI" BLANCO_T "%c " RESET_COLOR, USER, PWD, PROMPT);
+    printf(VERMELL_T "%s" VERDE_T ":~" AMARILLO_T "%s" BLANCO_T "%c " RESET_COLOR, USER, PWD, PROMPT);
 }
 
 //imprimir el prompt i llegir una linia de codi amb char *fgets(char *str, int n, sream FILE*)
@@ -228,7 +228,7 @@ int internal_source(char **args)
 //Metode que imprimeix job list
 int internal_jobs(char **args)
 {
-    for (int i = 1; i == n_pids; i++)
+    for (int i = 1; i < (n_pids + 1); i++)
     {
         printf("[%d]: PID: %d. COMMAND LINE: %s. STATUS: %c\n", i, jobs_list[i].pid, jobs_list[i].cmd, jobs_list[i].status);
     }
@@ -250,11 +250,7 @@ int internal_fg(char **args)
             jobs_list[0].status = 'E';
             strncpy(jobs_list[0].cmd, jobs_list[pos].cmd, 64);
             jobs_list_remove(pos);
-            for (int i = 0; i < 64; i++)
-            {
-                printf("%d ", jobs_list[pos].cmd[i]);
-            }
-            printf("\n");
+            printf("COMMAND LINE: %s.\n",jobs_list[0].cmd);
             while (jobs_list[0].pid > 0)
             {
                 pause();
@@ -289,12 +285,13 @@ int internal_bg(char **args)
             else
             {
                 jobs_list[pos].status = 'E';
+                printf("[%d]: PID: %d. COMMAND LINE: %s. STATUS: %c\n", pos, jobs_list[pos].pid, jobs_list[pos].cmd, jobs_list[pos].status);
                 kill(jobs_list[pos].pid, SIGCONT);
             }
         }
         else
         {
-            printf("BG--> No existeix el treball.\n");
+            printf("internal_bg()--> No existeix el treball.\n");
         }
     }
     else
@@ -383,7 +380,7 @@ int jobs_list_add(pid_t pid, char status, char *cmd)
 //metode que cerca un pid a job list i retorna la seva posicio
 int jobs_list_find(pid_t pid)
 {
-    for (int i = 0; i < n_pids; i++)
+    for (int i = 0; i < (n_pids + 1); i++)
     {
         if (jobs_list[i].pid == pid)
         {
@@ -427,13 +424,22 @@ void reaper(int signum)
 {
     signal(SIGCHLD, reaper);
     pid_t ended;
-    if ((ended = (waitpid(-1, NULL, WNOHANG))) > 0)
-    {
-        fflush(stdout);
+    int status;
+    while ((ended = waitpid(-1, &status, WNOHANG)) > 0)
+    { 
+        /*
+        if (!WIFEXITED(status))
+        {   
+            printf("El fill no ha acabat correctament %d\n", status);
+        }
+        if (!WIFSIGNALED(status))
+        {
+            printf("El fill que ha acabat per una senyal%d\n",WTERMSIG(status));
+        }
+        */
         if (ended == jobs_list[0].pid)
         {
             jobs_list[0].pid = 0;
-            printf("El fill que ha finalitzat es %d, i estava en foreground.\n", jobs_list[0].pid);
         }
         else
         {
@@ -443,7 +449,6 @@ void reaper(int signum)
                 printf("El fill que ha finalitzat es: %d\n", ended);
             }
         }
-        jobs_list[0].pid = 0; //provisional
     }
 }
 //Metode que atura el proces en primer pla
@@ -510,7 +515,7 @@ int is_output_redirection(char **args, int numArgs)
             if (args[i + 1] != NULL)
             {
                 //obrim l'artxiu
-                file = open(args[i + 1], O_WRONLY | O_APPEND);
+                file = open(args[i + 1], O_RDWR | O_APPEND | O_CREAT, 0777);
                 //associam stdout amb el fitxer
                 dup2(file, 1);
                 //tancam el fitxer
@@ -535,6 +540,8 @@ int execute_line(char *line)
     int numArgs = parse_args(args, line);
     //variable que indica si el proces s'ha d'executar en background
     int background = is_background(args, numArgs);
+    if (background)
+        numArgs--;
     //executa el mètode check_internal
     if (!check_internal(args))
     {
@@ -549,16 +556,17 @@ int execute_line(char *line)
             is_output_redirection(args, numArgs);
             //ho executam
             execvp(args[0], args);
-            printf("HIJO: Si ve este mensaje, el execvp no funcionó...\n");
             exit(-1);
         }
         else if (pid > 0)
         { // pare
             //comprovam si s'ha d'executar en segon pla
+
             if (background)
             {
                 //ho afegim a jobs list
                 jobs_list_add(pid, 'E', *args);
+                sleep(1);
             }
             else
             {
@@ -566,12 +574,14 @@ int execute_line(char *line)
                 jobs_list[0].pid = pid;
                 jobs_list[0].status = 'E';
                 strncpy(jobs_list[0].cmd, *args, 64);
+                sleep(1);
                 //mentres hi ha un proces en foreground el pare espera
                 while (jobs_list[0].pid > 0)
                 {
                     pause();
                 }
             }
+            *args[0] = *args[ARGS_SIZE];
         }
         else
         {
